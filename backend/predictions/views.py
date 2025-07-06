@@ -61,4 +61,11 @@ class PredictionListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Prediction.objects.filter(user=self.request.user).order_by('-requested_at')
+        qs = Prediction.objects.filter(user=self.request.user).order_by('-requested_at')
+        ticker = self.request.query_params.get('ticker')
+        date = self.request.query_params.get('date')
+        if ticker:
+            qs = qs.filter(ticker__iexact=ticker)
+        if date:
+            qs = qs.filter(requested_at__date=date)
+        return qs
