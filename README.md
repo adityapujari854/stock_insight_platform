@@ -216,3 +216,7 @@ Authorization: Bearer <access_token>
   "plot_2_url": "/media/predictions/tsla_plot2.png"
 }
 ```
+## 👤 Author
+
+* Aditya Pujari
+* Telegram Bot: [@aditya\_stock\_insight\_bot](https://t.me/aditya_stock_insight_bot)
