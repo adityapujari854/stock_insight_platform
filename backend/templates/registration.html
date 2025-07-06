@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-10 flex flex-col items-center">
+    <h2 class="text-3xl font-bold mb-6 text-blue-700">Register</h2>
+    <form method="post" class="w-full space-y-6">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-semibold">Register</button>
+    </form>
+    <div class="mt-6 text-center">
+        <a href="{% url 'login' %}" class="text-blue-500 hover:underline">Already have an account?</a>
+    </div>
+</div>
+{% endblock %}

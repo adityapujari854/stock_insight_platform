@@ -1,0 +1,122 @@
+<!-- filepath: backend/templates/dashboard.html -->
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-10 px-4">
+  <div class="max-w-5xl mx-auto bg-white p-10 rounded-2xl shadow-xl">
+    <!-- Header -->
+    <div class="mb-10 text-center">
+      <h1 class="text-4xl font-extrabold text-blue-700 mb-2">📊 Stock Prediction Dashboard</h1>
+    </div>
+
+    <!-- Quota Section -->
+    {% if not is_pro %}
+    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+      <span class="font-semibold text-blue-800">Quota:</span>
+      <span class="text-blue-900">{{ used|default:0 }}/{{ quota|default:0 }}</span>
+      <span class="ml-2 text-gray-600">used today.</span>
+      {% if used >= quota %}
+      <div class="mt-2 text-red-600 font-medium">
+        You’ve reached your daily limit.
+        <a href="/subscribe/" class="underline text-blue-700">Upgrade to Pro</a> for unlimited predictions.
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 text-center text-green-700 font-medium">
+      Pro User: Unlimited predictions enabled.
+    </div>
+    {% endif %}
+
+    <!-- Prediction Form -->
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+      <form id="predict-form" method="post" class="flex flex-col md:flex-row gap-4 items-center justify-center">
+        {% csrf_token %}
+        <input type="text" id="ticker" name="ticker" placeholder="Enter Ticker (e.g., AAPL)"
+          class="w-full md:w-1/2 border border-gray-300 px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required>
+        <button type="submit"
+          class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-all">Predict</button>
+      </form>
+      <div id="predict-result" class="mt-6 text-center"></div>
+    </div>
+
+    <!-- Prediction Table -->
+    <h2 class="text-2xl font-bold text-blue-700 mb-4 text-center">Prediction History</h2>
+    <div class="overflow-x-auto bg-white border border-gray-200 rounded-lg shadow">
+      <table class="min-w-full text-sm text-left">
+        <thead class="bg-blue-100 text-blue-800 font-semibold">
+          <tr>
+            <th class="py-3 px-4">Ticker</th>
+            <th class="py-3 px-4">Predicted Price</th>
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4 text-center">Plot 1</th>
+            <th class="py-3 px-4 text-center">Plot 2</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-800">
+          {% for p in predictions %}
+          <tr class="border-t hover:bg-blue-50 transition">
+            <td class="py-3 px-4 font-mono">{{ p.ticker }}</td>
+            <td class="py-3 px-4 font-semibold">{{ p.predicted_price }}</td>
+            <td class="py-3 px-4">{{ p.requested_at|date:"Y-m-d H:i" }}</td>
+            <td class="py-3 px-4 text-center">
+              <img src="{{ p.plot_1.url }}" alt="Plot 1" class="h-16 rounded shadow mx-auto">
+            </td>
+            <td class="py-3 px-4 text-center">
+              <img src="{{ p.plot_2.url }}" alt="Plot 2" class="h-16 rounded shadow mx-auto">
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-6 text-gray-400">No predictions yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Predict AJAX Script -->
+<script>
+document.getElementById('predict-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const ticker = document.getElementById('ticker').value;
+  const resultDiv = document.getElementById('predict-result');
+  resultDiv.innerHTML = "<span class='text-gray-500'>⏳ Fetching prediction...</span>";
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  try {
+    const response = await fetch('/api/v1/predict/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
+      body: JSON.stringify({ ticker })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      resultDiv.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 text-left rounded-lg p-4 shadow mt-4 max-w-2xl mx-auto">
+          <h4 class="text-xl font-bold text-blue-800 mb-2">${data.ticker} – Prediction Result</h4>
+          <p class="text-gray-700 mb-1"><strong>Predicted Price:</strong> ₹ ${data.predicted_price}</p>
+          <p class="text-sm text-gray-600 mb-3">MSE: ${data.metrics.mse}, RMSE: ${data.metrics.rmse}, R²: ${data.metrics.r2}</p>
+          <div class="flex justify-center gap-4 mt-3">
+            <img src="${data.plot_1_url}" alt="Plot 1" class="h-28 rounded shadow-sm">
+            <img src="${data.plot_2_url}" alt="Plot 2" class="h-28 rounded shadow-sm">
+          </div>
+        </div>
+      `;
+    } else {
+      resultDiv.innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded">${data.detail || data.error || "Prediction failed."}</div>`;
+    }
+  } catch (err) {
+    resultDiv.innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded">Network or server error.</div>`;
+  }
+});
+</script>
+{% endblock %}

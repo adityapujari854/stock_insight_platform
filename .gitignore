@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+*.egg
+*.egg-info/
+*.log
+
+# Environment
+.env
+.env.*
+
+# Virtualenv
+venv/
+ENV/
+env/
+.venv/
+
+# Django static/media files
+/staticfiles/
+/media/
+/static/
+
+# Django migrations (optional: you can track them if needed)
+**/migrations/
+!**/migrations/__init__.py
+
+# Django SQLite DB (for local only)
+db.sqlite3
+*.sqlite3
+
+# VS Code
+.vscode/
+.history/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Node (if Tailwind via CLI is used)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Docker
+*.pid
+*.seed
+*.bak
+docker-compose.override.yml
+
+# Model files
+*.h5
+*.keras
+model/*.keras
+model/*.h5
+model/__pycache__/
+
+# Pytest or test artifacts
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# MyPy, Pylint, Bandit, etc.
+.mypy_cache/
+.pyre/
+.pytype/

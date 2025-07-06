@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Stock Insight Platform{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-b from-blue-50 to-white min-h-screen">
+    <nav class="bg-white shadow mb-8 py-4 px-8 flex justify-center items-center space-x-8 rounded-b-xl">
+        <span class="text-2xl font-bold text-blue-700 tracking-wide mr-8">Stock Insight</span>
+        {% if request.user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="text-blue-700 font-medium hover:underline">Dashboard</a>
+            <a href="{% url 'profile' %}" class="text-blue-700 font-medium hover:underline">Profile</a>
+            <a href="{% url 'password_change' %}" class="text-blue-700 font-medium hover:underline">Change Password</a>
+            <a href="{% url 'logout' %}" class="text-red-600 font-medium hover:underline">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="text-blue-700 font-medium hover:underline">Login</a>
+            <a href="{% url 'register' %}" class="text-green-600 font-medium hover:underline">Register</a>
+        {% endif %}
+    </nav>
+    <main class="flex flex-col items-center justify-center min-h-[80vh]">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
