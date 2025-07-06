@@ -8,9 +8,29 @@ from predictions.models import Prediction
 from asgiref.sync import sync_to_async
 import os
 from datetime import datetime
+from collections import defaultdict
+import asyncio
+import time
 
 class Command(BaseCommand):
     help = "Run the Telegram bot using long polling"
+
+    def __init__(self):
+        super().__init__()
+        self.rate_limits = defaultdict(list)
+        self.lock = asyncio.Lock()
+
+    async def check_rate_limit(self, chat_id):
+        async with self.lock:
+            now = time.time()
+            window = 60 
+            max_calls = 10
+            timestamps = self.rate_limits[chat_id]
+            self.rate_limits[chat_id] = [t for t in timestamps if now - t < window]
+            if len(self.rate_limits[chat_id]) >= max_calls:
+                return False
+            self.rate_limits[chat_id].append(now)
+            return True
 
     # ───── Async-safe ORM operations ─────
     @sync_to_async
@@ -48,6 +68,12 @@ class Command(BaseCommand):
         )
 
     async def predict_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        # Rate limiting
+        allowed = await self.check_rate_limit(update.effective_chat.id)
+        if not allowed:
+            await update.message.reply_text("⏳ Rate limit: Max 10 predictions per minute. Please wait and try again.")
+            return
+
         args = context.args
         if not args:
             await update.message.reply_text("Usage: /predict <TICKER>")
